@@ -1,6 +1,27 @@
 EESchema-LIBRARY Version 2.4
 #encoding utf-8
 #
+# SparkFun-Capacitors_0.1UF-0603-25V-_+80_-20%_
+#
+DEF SparkFun-Capacitors_0.1UF-0603-25V-_+80_-20%_ C 0 40 N N 1 L N
+F0 "C" 60 115 45 H V L BNN
+F1 "SparkFun-Capacitors_0.1UF-0603-25V-_+80_-20%_" 60 -85 45 H V L BNN
+F2 "0603" 0 250 20 H I C CNN
+F3 "" 0 0 50 H I C CNN
+F4 "CAP-00810" 0 300 60 H V C CNN
+$FPLIST
+ *0603*
+$ENDFPLIST
+DRAW
+S -80 20 80 40 1 1 0 F
+S -80 60 80 80 1 1 0 F
+P 2 1 0 0 0 0 0 20 N
+P 2 1 0 0 0 100 0 80 N
+X 1 1 0 200 100 D 40 40 1 1 P
+X 2 2 0 -100 100 U 40 40 1 1 P
+ENDDRAW
+ENDDEF
+#
 # SparkFun-Capacitors_0.1UF-KIT-EZ-50V-20%
 #
 DEF SparkFun-Capacitors_0.1UF-KIT-EZ-50V-20% C 0 40 N N 1 L N
@@ -124,6 +145,21 @@ X GND ~ 0 0 0 D 40 40 1 1 W N
 ENDDRAW
 ENDDEF
 #
+# SparkFun-PowerSymbols_VDD
+#
+DEF SparkFun-PowerSymbols_VDD #SUPPLY 0 40 N N 1 L P
+F0 "#SUPPLY" 50 0 45 H I L BNN
+F1 "SparkFun-PowerSymbols_VDD" -50 150 45 H V L BNN
+F2 "XXX-00000" 0 300 60 H V C CNN
+F3 "" 0 0 60 H I C CNN
+DRAW
+P 2 1 0 0 0 0 0 100 N
+P 2 1 0 0 0 100 -30 50 N
+P 2 1 0 0 30 50 0 100 N
+X VDD ~ 0 0 0 U 40 40 1 1 W N
+ENDDRAW
+ENDDEF
+#
 # SparkFun-Resistors_RESISTOR0402
 #
 DEF SparkFun-Resistors_RESISTOR0402 R 0 40 N N 1 L N
@@ -150,6 +186,51 @@ P 2 1 0 0 65 40 90 -40 N
 P 2 1 0 0 90 -40 100 0 N
 X 1 1 -200 0 100 R 40 40 1 1 P
 X 2 2 200 0 100 L 40 40 1 1 P
+ENDDRAW
+ENDDEF
+#
+# dk_Motion-Sensors-IMUs-Inertial-Measurement-Units_LSM9DS1TR
+#
+DEF dk_Motion-Sensors-IMUs-Inertial-Measurement-Units_LSM9DS1TR U 0 40 Y Y 1 F N
+F0 "U" -501 739 60 H V L CNN
+F1 "dk_Motion-Sensors-IMUs-Inertial-Measurement-Units_LSM9DS1TR" 227 -453 60 H V L CNN
+F2 "digikey-footprints:LGA-24_3x3.5mm_LSM9DS1" 200 200 60 H I L CNN
+F3 "http://www.st.com/content/ccc/resource/technical/document/datasheet/1e/3f/2a/d6/25/eb/48/46/DM00103319.pdf/files/DM00103319.pdf/jcr:content/translations/en.DM00103319.pdf" 200 300 60 H I L CNN
+F4 "497-14946-1-ND" 200 400 60 H I L CNN "Digi-Key_PN"
+F5 "LSM9DS1TR" 200 500 60 H I L CNN "MPN"
+F6 "Sensors, Transducers" 200 600 60 H I L CNN "Category"
+F7 "Motion Sensors - IMUs (Inertial Measurement Units)" 200 700 60 H I L CNN "Family"
+F8 "http://www.st.com/content/ccc/resource/technical/document/datasheet/1e/3f/2a/d6/25/eb/48/46/DM00103319.pdf/files/DM00103319.pdf/jcr:content/translations/en.DM00103319.pdf" 200 800 60 H I L CNN "DK_Datasheet_Link"
+F9 "/product-detail/en/stmicroelectronics/LSM9DS1TR/497-14946-1-ND/4988079" 200 900 60 H I L CNN "DK_Detail_Page"
+F10 "IMU ACCEL/GYRO/MAG I2C/SPI 24LGA" 200 1000 60 H I L CNN "Description"
+F11 "STMicroelectronics" 200 1100 60 H I L CNN "Manufacturer"
+F12 "Active" 200 1200 60 H I L CNN "Status"
+DRAW
+S -500 700 500 -400 0 1 0 f
+X VDDIO 1 -200 800 100 D 50 50 1 0 W
+X INT_M 10 600 100 100 L 50 50 1 0 O
+X INT1_A/G 11 600 0 100 L 50 50 1 0 O
+X INT2_A/G 12 600 -100 100 L 50 50 1 0 O
+X DEN_A/G 13 -600 0 100 R 50 50 1 0 I
+X RES 14 -400 -500 100 U 50 50 1 0 W
+X RES 15 -300 -500 100 U 50 50 1 0 W
+X RES 16 -200 -500 100 U 50 50 1 0 W
+X RES 17 -100 -500 100 U 50 50 1 0 W
+X RES 18 0 -500 100 U 50 50 1 0 W
+X GND 19 100 -500 100 U 50 50 1 0 W
+X SCL/SPC 2 -600 300 100 R 50 50 1 0 I
+X GND 20 200 -500 100 U 50 50 1 0 W
+X CAP 21 600 -300 100 L 50 50 1 0 U
+X VDD 22 100 800 100 D 50 50 1 0 W
+X VDD 23 200 800 100 D 50 50 1 0 W
+X C1 24 600 -200 100 L 50 50 1 0 U
+X VDDIO 3 -100 800 100 D 50 50 1 0 W
+X SDA/SDI/SDO 4 -600 400 100 R 50 50 1 0 B
+X SDO_A/G 5 600 400 100 L 50 50 1 0 O
+X SDO_M 6 600 300 100 L 50 50 1 0 O
+X CS_A/G 7 -600 200 100 R 50 50 1 0 I
+X CS_M 8 -600 100 100 R 50 50 1 0 I
+X DRDY_M 9 600 200 100 L 50 50 1 0 O
 ENDDRAW
 ENDDEF
 #

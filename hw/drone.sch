@@ -1,9 +1,10 @@
 EESchema Schematic File Version 4
+LIBS:drone-cache
 EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 1 2
+Sheet 1 3
 Title ""
 Date ""
 Rev ""
@@ -22,5 +23,16 @@ F2 "RF_SCK" I L 8550 2800 50
 F3 "RF_CS" I L 8550 2950 50 
 F4 "RF_MISO" I L 8550 3100 50 
 F5 "RF_MOSI" I L 8550 3250 50 
+$EndSheet
+$Sheet
+S 6500 2650 1450 1600
+U 5DAFA187
+F0 "IMU" 50
+F1 "IMU.sch" 50
+F2 "IMU_MOSI" I L 6500 2900 50 
+F3 "IMU_SCK" I L 6500 3100 50 
+F4 "IMU_CS" I L 6500 3300 50 
+F5 "MAG_CS" I L 6500 3450 50 
+F6 "IMU_MISO" I L 6500 3600 50 
 $EndSheet
 $EndSCHEMATC
