@@ -140,7 +140,23 @@ B13
 Text Label 4150 5150 0    50   ~ 0
 B12
 Text Label 6350 2900 2    50   ~ 0
-B13
+A7
 Wire Wire Line
 	6500 2900 6350 2900
+Text Label 6350 3600 2    50   ~ 0
+A6
+Text Label 6350 3100 2    50   ~ 0
+A5
+Wire Wire Line
+	6350 3100 6500 3100
+Wire Wire Line
+	6350 3600 6500 3600
+Text Label 6350 3300 2    50   ~ 0
+A3
+Text Label 6350 3450 2    50   ~ 0
+A2
+Wire Wire Line
+	6350 3300 6500 3300
+Wire Wire Line
+	6350 3450 6500 3450
 $EndSCHEMATC
