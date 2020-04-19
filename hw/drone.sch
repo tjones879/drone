@@ -1,10 +1,9 @@
 EESchema Schematic File Version 4
-LIBS:drone-cache
 EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 1 3
+Sheet 1 4
 Title ""
 Date ""
 Rev ""
@@ -159,4 +158,14 @@ Wire Wire Line
 	6350 3300 6500 3300
 Wire Wire Line
 	6350 3450 6500 3450
+$Sheet
+S 6500 4600 1350 1100
+U 5E9C3A8B
+F0 "uSD" 50
+F1 "uSD.sch" 50
+F2 "uSD_SCK" I L 6500 4950 50 
+F3 "uSD_CS" I L 6500 5100 50 
+F4 "uSD_MOSI" I L 6500 4800 50 
+F5 "uSD_MISO" I L 6500 5250 50 
+$EndSheet
 $EndSCHEMATC

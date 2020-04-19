@@ -1,0 +1,86 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 4 4
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L SparkFun-Connectors:MICRO-SD_CARD_SOCKET J?
+U 1 1 5E9C4C6B
+P 5450 3400
+F 0 "J?" H 5450 4166 45  0000 C CNN
+F 1 "MICRO-SD_CARD_SOCKET" H 5450 4082 45  0000 C CNN
+F 2 "MICRO-SD-SOCKET" H 5450 3900 20  0001 C CNN
+F 3 "" H 5450 3400 50  0001 C CNN
+F 4 "CONN-11976" H 5450 3987 60  0000 C CNN "Field4"
+F 5 "CONN-07820" H 5450 3881 60  0000 C CNN "PROD_ID"
+	1    5450 3400
+	1    0    0    -1  
+$EndComp
+$Comp
+L SparkFun-PowerSymbols:GND2 #GND?
+U 1 1 5E9C5419
+P 5400 4350
+F 0 "#GND?" H 5450 4300 45  0001 L BNN
+F 1 "GND2" H 5400 4120 45  0000 C CNN
+F 2 "XXX-00000" H 5400 4025 60  0000 C CNN
+F 3 "" H 5400 4250 60  0001 C CNN
+	1    5400 4350
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5300 4000 5300 4200
+Wire Wire Line
+	5300 4200 5400 4200
+Wire Wire Line
+	5400 4200 5400 4350
+Wire Wire Line
+	5400 4000 5400 4200
+Connection ~ 5400 4200
+Wire Wire Line
+	5500 4000 5500 4200
+Wire Wire Line
+	5500 4200 5400 4200
+Text HLabel 4400 3500 0    50   Input ~ 0
+uSD_SCK
+Text HLabel 4400 3300 0    50   Input ~ 0
+uSD_CS
+$Comp
+L SparkFun-PowerSymbols:3.3V #SUPPLY?
+U 1 1 5E9C5BD0
+P 4700 2950
+F 0 "#SUPPLY?" H 4750 2950 45  0001 L BNN
+F 1 "3.3V" H 4700 3226 45  0000 C CNN
+F 2 "XXX-00000" H 4700 3131 60  0000 C CNN
+F 3 "" H 4700 2950 60  0001 C CNN
+	1    4700 2950
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4800 3200 4700 3200
+Wire Wire Line
+	4700 3200 4700 2950
+Wire Wire Line
+	4800 3300 4400 3300
+Wire Wire Line
+	4800 3500 4400 3500
+NoConn ~ 6100 3600
+NoConn ~ 6100 3800
+Text HLabel 4400 3400 0    50   Input ~ 0
+uSD_MOSI
+Text HLabel 4400 3600 0    50   Input ~ 0
+uSD_MISO
+Wire Wire Line
+	4400 3600 4800 3600
+Wire Wire Line
+	4400 3400 4800 3400
+$EndSCHEMATC
