@@ -37,7 +37,7 @@ int main()
     // Logger::get().INFO("Hello World");
 
     UartDev uart1(0);
-    uart1.dma_read();
+    uart1.enable_circ_dma_rx();
     while (1)
     {
         if (received)
