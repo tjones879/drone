@@ -1,3 +1,6 @@
 [submodule "sw/flight-control/lib/stm32f1xx-hal"]
 	path = sw/flight-control/lib/stm32f1xx-hal
 	url = git@github.com:tjones879/stm32f1xx-hal.git
+[submodule "sw/flight-control/libopencm3"]
+	path = sw/flight-control/libopencm3
+	url = git@github.com:libopencm3/libopencm3.git
