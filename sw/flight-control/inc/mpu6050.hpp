@@ -191,7 +191,7 @@ enum class UserControl : uint8_t
 class MPU6050
 {
 public:
-    MPU6050(mpu::I2CAddr devAddr, DMA dmaDev)
+    MPU6050(mpu::I2CAddr devAddr, dma::DMA dmaDev)
     noexcept
       : interruptSources(*this)
       , lpf(*this)
@@ -211,7 +211,6 @@ public:
       , userControl(*this)
       , addr(devAddr)
       , i2c(I2C2)
-      , dmaDev(dmaDev)
     {
         /*
         dmaDev.disable();
@@ -309,7 +308,7 @@ public:
 private:
     mpu::I2CAddr addr;
     I2CDev i2c;
-    DMA dmaDev;
+    //DMA dmaDev;
     // Internal registers
     Register<mpu::Reg::FIFO_COUNTH, uint8_t> fifoCountH;
     Register<mpu::Reg::FIFO_COUNTL, uint8_t> fifoCountL;
