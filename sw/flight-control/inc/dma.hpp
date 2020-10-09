@@ -42,23 +42,24 @@ enum class Interrupt : std::uint32_t
 };
 
 using Address = StrongType<uint32_t>;
-using DataLength = StrongType<uint32_t>;
+using DataLength = StrongType<uint16_t>;
 using Channel = StrongType<uint8_t>;
 
 class DMA
 {
 public:
-    DMA(Device dev, Channel channel, Priority priority)
-        : dev(static_cast<uint32_t>(dev)), channel(channel.get()),
-          priority(static_cast<uint32_t>(priority))
+    DMA(Device device, Channel chan, Priority prio)
+        : dev(static_cast<uint32_t>(device)), channel(chan.get()),
+          priority(static_cast<uint32_t>(prio))
     {
-        dma_clear_interrupt_flags(this->dev, this->channel, DMA_GIF);
-        dma_channel_reset(this->dev, this->channel);
-        dma_set_priority(this->dev, this->channel, this->priority);
+        dma_clear_interrupt_flags(dev, channel, DMA_GIF);
+        dma_channel_reset(dev, channel);
+        dma_set_priority(dev, channel, priority);
     }
 
     void enableChannel(DataLength num_data, bool circular)
     {
+        dma_set_number_of_data(dev, channel, num_data.get());
         if (circular)
             dma_enable_circular_mode(dev, channel);
 
@@ -68,11 +69,6 @@ public:
     void disable()
     {
         dma_disable_channel(dev, channel);
-    }
-
-    void setNumData(std::uint16_t data)
-    {
-        dma_set_number_of_data(dev, channel, data);
     }
 
     void enableInterrupt(Interrupt interrupt)
@@ -86,6 +82,11 @@ public:
             dma_enable_half_transfer_interrupt(dev, channel);
             break;
         case Interrupt::TRANSFER_ERROR:
+            dma_enable_transfer_error_interrupt(dev, channel);
+            break;
+        case Interrupt::GLOBAL:
+            dma_enable_transfer_complete_interrupt(dev, channel);
+            dma_enable_half_transfer_interrupt(dev, channel);
             dma_enable_transfer_error_interrupt(dev, channel);
             break;
         }
@@ -102,6 +103,11 @@ public:
             dma_disable_half_transfer_interrupt(dev, channel);
             break;
         case Interrupt::TRANSFER_ERROR:
+            dma_disable_transfer_error_interrupt(dev, channel);
+            break;
+        case Interrupt::GLOBAL:
+            dma_disable_transfer_complete_interrupt(dev, channel);
+            dma_disable_half_transfer_interrupt(dev, channel);
             dma_disable_transfer_error_interrupt(dev, channel);
             break;
         }

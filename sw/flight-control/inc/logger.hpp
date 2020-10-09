@@ -24,5 +24,4 @@ private:
     Logger() {}
     void log(const char *str);
     bool enable = true;
-    BinarySemaphore mutex;
 };
