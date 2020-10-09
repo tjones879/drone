@@ -4,8 +4,8 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/dma.h>
 #include <libopencm3/cm3/nvic.h>
+#include "dma.hpp"
 
 extern volatile int received;
 
@@ -13,7 +13,10 @@ class UartDev
 {
 public:
 
-    UartDev(uint32_t device) : dev(device), dataReg(USART1_DR)
+    UartDev(uint32_t device)
+        : dev(device), dataReg(USART1_DR),
+          dma_handle(dma::DMA(dma::Device(DMA1), dma::Channel(DMA_CHANNEL5),
+                              dma::Priority::HIGH))
     {
         rcc_periph_clock_enable(RCC_GPIOA);
         rcc_periph_clock_enable(RCC_USART1);
@@ -51,29 +54,19 @@ public:
 
     void enable_circ_dma_rx()
     {
-        dma_clear_interrupt_flags(DMA1, DMA_CHANNEL5, DMA_GIF);
-        dma_channel_reset(DMA1, DMA_CHANNEL5);
-
         nvic_set_priority(NVIC_DMA1_CHANNEL5_IRQ, 0);
         nvic_enable_irq(NVIC_DMA1_CHANNEL5_IRQ);
 
-        dma_set_peripheral_address(DMA1, DMA_CHANNEL5, (uint32_t)&USART1_DR);
+        dma_handle.setPeripheralAddress(dma::Address((uint32_t)&USART1_DR),
+                                        dma::PeripheralSize::BYTE,
+                                        false);
+        dma_handle.setMemoryAddress(dma::Address((uint32_t)this->fifo),
+                                    dma::MemorySize::BYTE,
+                                    true);
         dma_set_read_from_peripheral(DMA1, DMA_CHANNEL5);
 
-        dma_set_peripheral_size(DMA1, DMA_CHANNEL5, DMA_CCR_PSIZE_8BIT);
-        dma_set_memory_size(DMA1, DMA_CHANNEL5, DMA_CCR_MSIZE_8BIT);
-
-        dma_set_priority(DMA1, DMA_CHANNEL5, DMA_CCR_PL_VERY_HIGH);
-
-        dma_disable_peripheral_increment_mode(DMA1, DMA_CHANNEL5);
-        dma_enable_memory_increment_mode(DMA1, DMA_CHANNEL5);
-        dma_enable_circular_mode(DMA1, DMA_CHANNEL5);
-
-        dma_set_memory_address(DMA1, DMA_CHANNEL5, (uint32_t)this->fifo);
-        dma_set_number_of_data(DMA1, DMA_CHANNEL5, size);
-
-        dma_enable_transfer_complete_interrupt(DMA1, DMA_CHANNEL5);
-        dma_enable_channel(DMA1, DMA_CHANNEL5);
+        dma_handle.enableInterrupt(dma::Interrupt::TRANSFER_COMPLETE);
+        dma_handle.enableChannel(dma::DataLength(size), true);
 
         usart_enable_rx_dma(USART1);
     }
@@ -117,5 +110,6 @@ public:
     char fifo[size];
 private:
     uint32_t dev;
+    dma::DMA dma_handle;
 };
 

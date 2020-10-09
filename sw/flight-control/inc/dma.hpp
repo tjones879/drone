@@ -57,7 +57,7 @@ public:
         dma_set_priority(this->dev, this->channel, this->priority);
     }
 
-    void enable(DataLength num_data, bool circular)
+    void enableChannel(DataLength num_data, bool circular)
     {
         if (circular)
             dma_enable_circular_mode(dev, channel);
