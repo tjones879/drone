@@ -1,0 +1,36 @@
+system_name: GNSS
+id: 2
+messages:
+  FixData:
+    fields:
+      latitude:
+        type: int32
+      longitude:
+        type: int32
+      time:
+        type: uint32
+      altitude:
+        type: uint16
+
+  FixQuality:
+    fields:
+      pdop:
+        type: uint16
+        description: Position dilution of precision
+      hdop:
+        type: uint16
+        description: Horizontal dilution of precision
+      vdop:
+        type: uint16
+        description: Vertical dilution of precision
+      fixed:
+        type: bool
+        description:
+          Flag to indicate if a valid satellite lock has been acquired.
+
+  Track:
+    fields:
+      speed:
+        type: uint16
+      true_course:
+        type: int16

@@ -1,0 +1,67 @@
+system_name: IMU
+id: 1
+messages:
+  GyroSample:
+    fields:
+      x:
+        type: int16
+      y:
+        type: int16
+      z:
+        type: int16
+
+  AccelSample:
+    fields:
+      x:
+        type: int16
+      y:
+        type: int16
+      z:
+        type: int16
+
+  MagSample:
+    fields:
+      x:
+        type: int16
+      y:
+        type: int16
+      z:
+        type: int16
+
+  GyroConfig:
+    fields:
+      x_bias:
+        type: int16
+      y_bias:
+        type: int16
+      z_bias:
+        type: int16
+      sample_rate:
+        type: uint16
+        description:
+          "sample_scale:
+          - 245DPS
+          - 500DPS
+          - 2000DPS"
+
+  AccelConfig:
+    fields:
+      sample_rate:
+        type: uint16
+        description:
+          "sample_scale:
+            - 2G
+            - 4G
+            - 8G
+            - 16G"
+
+  MagConfig:
+    fields:
+      sample_rate:
+        type: uint16
+        description:
+          "sample_scale:
+            - 4G
+            - 8G
+            - 12G
+            - 16G"
