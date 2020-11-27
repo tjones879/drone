@@ -38,11 +38,11 @@ struct PeripheralRegister
     {
         static_assert(readWrite, "Requires read-write register");
 
-        auto writeValue = 0 | (static_cast<RegisterSize>(val));
+        auto writeValue = static_cast<RegisterSize>(val);
         dev.write(reg, writeValue);
     }
 
-    uint8_t get_bits()
+    RegisterSize get_bits()
     {
         return dev.read(reg);
     }
