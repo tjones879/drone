@@ -131,8 +131,8 @@ enum class Reg : uint8_t
 
 enum class IntSources : uint8_t
 {
-    DATA_READY = 1,
-    I2C_MASTER = 0x8,
+    DATA_READY = 0x01,
+    I2C_MASTER = 0x08,
     FIFO_OFLOW = 0x10,
 };
 
@@ -191,7 +191,7 @@ enum class UserControl : uint8_t
 class MPU6050
 {
 public:
-    MPU6050(mpu::I2CAddr devAddr, dma::DMA dmaDev)
+    MPU6050(mpu::I2CAddr devAddr)
     noexcept
       : interruptSources(*this)
       , lpf(*this)
@@ -207,8 +207,11 @@ public:
       , fifoCountH(*this)
       , fifoCountL(*this)
       , fifoRW(*this)
+      , intSource(*this)
       , power(*this)
       , userControl(*this)
+      , signal_reset(*this)
+      , sampleRate(*this)
       , addr(devAddr)
       , i2c(I2C2)
     {
@@ -304,6 +307,9 @@ public:
     Register<mpu::Reg::FIFO_EN, uint8_t> fifoEnable;
     Register<mpu::Reg::FIFO_R_W, uint8_t> fifoRW;
     Register<mpu::Reg::USER_CTRL, mpu::UserControl> userControl;
+    Register<mpu::Reg::INT_STATUS, uint8_t> intSource;
+    Register<mpu::Reg::SIGNAL_PATH_RESET, uint8_t> signal_reset;
+    Register<mpu::Reg::SMPLRT_DIV, uint8_t> sampleRate;
 
 private:
     mpu::I2CAddr addr;
@@ -335,10 +341,13 @@ private:
         i2c.send_addr_block(static_cast<uint8_t>(addr), false);
         i2c.send_data_block(static_cast<uint8_t>(reg));
 
+        i2c.burst_read(static_cast<uint8_t>(addr), buff, buffLen);
+        /*
         i2c.send_start_block();
         i2c.send_addr_block(static_cast<uint8_t>(addr), true);
         i2c.read_data_blocks(buff, buffLen);
         i2c.send_stop();
+        */
     }
 
     void writeRegister(mpu::Reg reg, uint8_t val)
