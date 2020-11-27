@@ -1,0 +1,22 @@
+#pragma once
+
+//#for $system in $systems
+//#set $header = '%s.hpp' % system.name
+#include "$header"
+//#end for
+
+namespace messages {
+    auto getMessageName(uint8_t systemId, uint8_t messageId) -> const char *
+    {
+        switch(systemId)
+        {
+        //#for $system in $systems
+        case $system.name::system_id:
+            //#set $functionCall = '%s::getMessageName(messageId)' % $system.name
+            return $functionCall;
+        //#end for
+        default:
+            return "UNKNOWN SYSTEM";
+        }
+    }
+} // end namespace messages

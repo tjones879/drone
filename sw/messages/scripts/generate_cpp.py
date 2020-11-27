@@ -30,31 +30,47 @@ class CppField(message.Field):
             return '// ' + self.description
 
 
+def generateSystem(template_def: str, compiler_setting: dict, out_dir: str, sys_yml_file: str) -> message.System:
+    system = message.parse_system_def(sys_yml_file, CppField)
+    namespace = {
+        'system': system,
+        'messages': system.messages,
+        'arguments': [],
+        'initializer': []
+    }
+    template = Template(template_def, searchList=namespace,
+                        compilerSettings=compiler_setting)
+    with open(out_dir + '/' + system.name + '.hpp', 'w') as output:
+        output.write(str(template))
+    return system
+
+
+def generateTopInclude(template_def: str, compiler_setting: dict, out_dir: str, systems: [message.System]):
+    namespace = {
+        'systems': systems
+    }
+    template = Template(template_def, searchList=namespace,
+                        compilerSettings=compiler_setting)
+    with open(out_dir + '/messages.hpp', 'w') as output:
+        output.write(str(template))
+
+
 def main():
-    templateDef = open('scripts/templates/cpp_template.templ', 'r').read()
     compiler_setting = {
         'directiveStartToken': '//#',
         'directiveEndToken': '//#',
     }
-    namespace = {
-        'system': None,
-        'messages': None,
-        'arguments': [],
-        'initializer': []
-    }
+
+    # First generate all of our system files
+    sys_template = open('scripts/templates/cpp_template_system.templ', 'r').read()
     out_dir = sys.argv[1]
+    systems = []
     for sys_def in sys.argv[2:]:
-        system = message.parse_system_def(sys_def, CppField)
-        namespace = {
-            'system': system,
-            'messages': system.messages,
-            'arguments': [],
-            'initializer': []
-        }
-        template = Template(templateDef, searchList=namespace,
-                            compilerSettings=compiler_setting)
-        with open(out_dir + '/' + system.name + '.hpp', 'w') as output:
-            output.write(str(template))
+        systems.append(generateSystem(sys_template, compiler_setting, out_dir, sys_def))
+
+    # Now generate the top level include
+    top_template = open('scripts/templates/cpp_template_top.templ', 'r').read()
+    generateTopInclude(top_template, compiler_setting, out_dir, systems)
 
 
 if __name__ == '__main__':
