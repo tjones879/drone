@@ -1,6 +1,9 @@
 #include "logger.hpp"
 #include "mpu6050.hpp"
 #include "uart.hpp"
+#include "spi.hpp"
+#include "lsm9ds1.hpp"
+#include "gpio.hpp"
 #include <FreeRTOS/FreeRTOS.h>
 #include <libopencm3/cm3/cortex.h>
 #include <libopencm3/stm32/f1/memorymap.h>
@@ -9,6 +12,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <algorithm>
+
+#define configASSERT ( x )     if( ( x ) == 0 ) { taskDISABLE_INTERRUPTS(); for( ;; ); }
 
 volatile int received = 0;
 
@@ -23,7 +28,15 @@ void platform_setup()
 {
     rcc_clock_setup_in_hse_8mhz_out_72mhz();
     rcc_periph_clock_enable(RCC_GPIOC);
+    rcc_periph_clock_enable(RCC_GPIOB);
+    rcc_periph_clock_enable(RCC_AFIO);
+    rcc_periph_clock_enable(RCC_SPI2);
     gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO13);
+    gpio_set_mode(GPIOB, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO12);
+    gpio_set_mode(GPIOB, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO13 | GPIO15);
+    gpio_set_mode(GPIOB, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, GPIO14);
+
+    gpio_set(GPIOB, GPIO12);
 }
 
 void toggle_led()
@@ -31,12 +44,73 @@ void toggle_led()
     gpio_toggle(GPIOC, GPIO13);
 }
 
+void LedFlashTask(void *parameters)
+{
+    Logger::get().INFO("Hello World\n");
+    portTickType lastWakeTime;
+    const portTickType frequency = 1000;
+    lastWakeTime = xTaskGetTickCount();
+    for (;;)
+    {
+        Logger::get().INFO("Hello World\n");
+        toggle_led();
+        vTaskDelayUntil(&lastWakeTime, frequency);
+    }
+}
+
+extern "C" void vApplicationStackOverflowHook(TaskHandle_t task, char *taskName)
+{
+    for (;;)
+    {
+        continue;
+    }
+}
+
 int main()
 {
     platform_setup();
-    // Logger::get().INFO("Hello World");
+    Logger::get().INFO("Hello World\n");
+    xTaskCreate(LedFlashTask, "LED", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+    vTaskStartScheduler();
 
+    while (true)
+    {}
+
+    /*
     UartDev uart1(0);
+    SPIBus spi(spi::Device::DEV2, spi::Rate::DIV_16, spi::Polarity::IDLE_HI,
+               spi::Phase::A, spi::FrameSize::SHORT, spi::BitOrder::MSB);
+    GpioPin accel_cs(GPIOB, GPIO12, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL);
+    GpioPin mag_cs(GPIOB, GPIO9, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL);
+    accel_cs.set();
+    */
+
+
+    /*
+    Lsm9ds1 imu(spi, std::move(accel_cs), std::move(mag_cs));
+    imu.initAccel();
+    imu.initGyro();
+    imu.initFifo(8);
+
+    while(true)
+    {
+        uint16_t acc[32 * 6 + 1];
+        uint8_t num_samples = 32;
+        imu.readFifo(acc, num_samples);
+        uart1.write_data_block((uint8_t *)acc, num_samples * 12);
+    }
+    */
+
+    /*
+    SPIBus spi(spi::Device::DEV2, spi::Rate::DIV_16, spi::Polarity::IDLE_HI,
+                  spi::Phase::A, spi::FrameSize::SHORT, spi::BitOrder::MSB);
+    uint16_t val = spi.read(0x0F);
+    char log[8];
+    snprintf(log, 8, "%x\n", val);
+    Logger::get().INFO(log);
+    val = spi.read(0x1E);
+    snprintf(log, 8, "%x\n", val);
+    Logger::get().INFO(log);
     uart1.enable_circ_dma_rx();
     while (1)
     {
@@ -48,24 +122,42 @@ int main()
         }
     }
 
-    /*
-    MPU6050 mpu6050(mpu::I2CAddr::LOW, DMA(DMA1, 5));
-
-
-    if (mpu6050.testConnection())
-        Logger::get().INFO("WHOAMI GOOD\n");
-    else
+    MPU6050 mpu6050(mpu::I2CAddr::LOW);
+    bool good = mpu6050.testConnection();
+    if (!good)
+        mpu6050.power.set_bits<0>();
+    while (!good)
+    {
         Logger::get().WARN("WHOAMI BAD\n");
+        good = mpu6050.testConnection();
+    }
+    mpu6050.power.set_bits<0x80>();
+    toggle_led();
+    good = mpu6050.testConnection();
+    for (unsigned i = 0; i < 10000000; i++)
+        asm("nop");
+    if (!good)
+        mpu6050.power.set_bits<0>();
+    while (!good)
+    {
+        Logger::get().WARN("WHOAMI BAD\n");
+        good = mpu6050.testConnection();
+    }
 
     mpu6050.power.set_bits<0>();
+    //mpu6050.signal_reset.set_bits<0x07>(); // Reset gyro, acc, temp
+    mpu6050.sampleRate.set_bits<0x01>();
+    mpu6050.power.set_bits<3>(); // Set gyro x as PLL
     mpu6050.accelRange.set_bits<mpu::AccelRange::G_2>();
+    mpu6050.gyroRange.set_bits<mpu::GyroRange::DEG_250>();
     mpu6050.fifoEnable.set_bits<static_cast<uint8_t>(mpu::FifoEnable::DISABLE)>();
     mpu6050.userControl.set_bits<mpu::UserControl::FIFO_RESET>();
     mpu6050.userControl.set_bits<mpu::UserControl::FIFO_EN>();
-    mpu6050.fifoEnable.set_bits<static_cast<uint8_t>(mpu::FifoEnable::ACCEL_FIFO_EN)>();
+    //mpu6050.fifoEnable.set_bits<static_cast<uint8_t>(mpu::FifoEnable::ACCEL_FIFO_EN)>();
+    mpu6050.fifoEnable.set_bits<0x78>();
 
     uint8_t fifo_en = mpu6050.fifoEnable.get_bits();
-    if (fifo_en & static_cast<uint8_t>(mpu::FifoEnable::ACCEL_FIFO_EN) != 
+    if (fifo_en & static_cast<uint8_t>(mpu::FifoEnable::ACCEL_FIFO_EN) !=
         static_cast<uint8_t>(mpu::FifoEnable::ACCEL_FIFO_EN))
     {
         char enable[64];
@@ -74,70 +166,89 @@ int main()
     }
 
     auto tmpA = static_cast<mpu::AccelRange>(mpu6050.accelRange.get_bits());
+    char accel[16];
     switch (tmpA) {
     case mpu::AccelRange::G_2:
         Logger::get().WARN("2G\n");
         break;
-    case mpu::AccelRange::G_16:
-        Logger::get().WARN("16G\n");
+    case mpu::AccelRange::G_4:
+        Logger::get().WARN("4G\n");
         break;
     case mpu::AccelRange::G_8:
         Logger::get().WARN("8G\n");
         break;
-    case mpu::AccelRange::G_4:
-        Logger::get().WARN("4G\n");
+    case mpu::AccelRange::G_16:
+        Logger::get().WARN("16G\n");
         break;
+    default:
+        snprintf(accel, 16, "%x\n", tmpA);
+        Logger::get().WARN("UNKNOWN ACCEL\n");
+        Logger::get().WARN(accel);
     }
 
-    const uint16_t buffLen = 1024;
+    const uint16_t buffLen = 2048;
     uint8_t buff[buffLen];
     uint16_t continued = 0;
     while (1) {
-
-        uint32_t vals[18];
-        const uint16_t fifo_count = mpu6050.getFifoCount();
-        if (fifo_count < 256)
+        uint16_t fifoDepth = mpu6050.getFifoCount();
+        if (mpu6050.intSource.get_bits() & static_cast<uint8_t>(mpu::IntSources::FIFO_OFLOW) ||
+            fifoDepth > 1024)
         {
-            continued++;
-            if (continued > 5000)
-            {
-                toggle_led();
-                Logger::get().WARN("CONTINUED\n");
-                continued -= 5000;
-            }
-            continue;
+            mpu6050.fifoEnable.set_bits<static_cast<uint8_t>(mpu::FifoEnable::DISABLE)>();
+            mpu6050.userControl.set_bits<mpu::UserControl::FIFO_RESET>();
+            mpu6050.userControl.set_bits<mpu::UserControl::FIFO_EN>();
+            //mpu6050.fifoEnable.set_bits<0x78>();
+            //mpu6050.fifoEnable.set_bits<static_cast<uint8_t>(mpu::FifoEnable::ACCEL_FIFO_EN)>();
+            //Logger::get().WARN("OFLOW\n");
         }
 
-        mpu6050.readFifo(buff, std::min(fifo_count, buffLen));
+        fifoDepth = mpu6050.getFifoCount();
+        if (fifoDepth > 1024)
+        {
+            char log[8];
+            snprintf(log, 8, "%d\n", fifoDepth);
+            Logger::get().WARN(log);
+        }
+
+        uint16_t readLen = std::min(buffLen, fifoDepth);
+        uint16_t numRead = 0;
+        while (numRead < fifoDepth)
+        {
+            mpu6050.readFifo(buff, readLen);
+            uart1.write_data_block(buff, readLen);
+            toggle_led();
+            numRead += readLen;
+            readLen = std::min(buffLen, (uint16_t)(fifoDepth - numRead));
+        }
 
         //for (auto i = 0; i < 18 * (fifo_count / 18); i++)
-        for (auto i = 0; i < fifo_count; i++)
+        for (auto i = 0; i < readLen / 6; i++)
         {
-            vals[i % 18] = mpu6050.fifoRW.get_bits();
-            if (i % 18 == 0)
-            {
-                char acc[64];
-                uint16_t x = vals[0] << 8 | vals[1];
-                uint16_t y = vals[2] << 8 | vals[3];
-                uint16_t z = vals[4] << 8 | vals[5];
-                snprintf(acc, 64, "accel = <%u, %u, %u>\n",
-                         x, y, z);
-                Logger::get().WARN(acc);
-            }
+            //vals[i % 6] = mpu6050.fifoRW.get_bits();
+            char acc[64];
+            uint16_t x = buff[i * 6] << 8 | buff[i * 6 + 1];
+            uint16_t y = (uint16_t)buff[i * 6 + 2] << 8 | buff[i * 6 + 3];
+            uint16_t z = (uint16_t)buff[i * 6 + 4] << 8 | buff[i * 6 + 5];
+            auto x = buff_16[3 * i];
+            auto y = buff_16[3 * i + 1];
+            auto z = buff_16[3 * i + 2];
+            snprintf(acc, 64, "accel = <%u, %u, %u>\n",
+                     x, y, z);
+            Logger::get().WARN(acc);
+
         }
 
-        uint16_t acc_xh = mpu6050.accelOutXH.get_bits();
-        uint16_t acc_xl = mpu6050.accelOutXL.get_bits();
-        uint16_t acc_yh = mpu6050.accelOutYH.get_bits();
-        uint16_t acc_yl = mpu6050.accelOutYL.get_bits();
-        uint16_t acc_zh = mpu6050.accelOutZH.get_bits();
-        uint16_t acc_zl = mpu6050.accelOutZL.get_bits();
-        char acc[64];
-        snprintf(acc, 64, "accel = <%hu %hu, %hu %hu, %hu %hu>\n",
-                 acc_xh, acc_xl, acc_yh, acc_yl, acc_zh, acc_zl);
-        Logger::get().WARN(acc);
+        uint8_t real_buff[6];
+        real_buff[0] = mpu6050.accelOutXH.get_bits();
+        real_buff[1] = mpu6050.accelOutXL.get_bits();
+        real_buff[2] = mpu6050.accelOutYH.get_bits();
+        real_buff[3] = mpu6050.accelOutYL.get_bits();
+        real_buff[4] = mpu6050.accelOutZH.get_bits();
+        real_buff[5] = mpu6050.accelOutZL.get_bits();
+        uart1.write_data_block(real_buff, 6);
     }
-        */
+    */
+
     uint32_t counter = 0;
     while (1)
     {
