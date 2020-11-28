@@ -1,4 +1,4 @@
-#include "sempahore.hpp"
+#include "semaphore.hpp"
 
 SemaphoreHandle::SemaphoreHandle(SemaphoreHandle_t *handle,
                                  TickType_t ticksToWait)
@@ -29,7 +29,8 @@ SemaphoreHandle::~SemaphoreHandle()
 
 BinarySemaphore::BinarySemaphore()
 {
-    semaphore = xSemaphoreCreateBinary();
+    semaphore = xSemaphoreCreateBinaryStatic(&staticBuffer);
+    give();
 }
 
 BinarySemaphore::~BinarySemaphore()
@@ -41,6 +42,11 @@ bool BinarySemaphore::take(TickType_t blockTime)
 {
     auto result = xSemaphoreTake(semaphore, blockTime);
     return pdToBoolean(result);
+}
+
+SemaphoreHandle BinarySemaphore::getRAII(TickType_t blockTime)
+{
+    return SemaphoreHandle(&semaphore, blockTime);
 }
 
 bool BinarySemaphore::give()

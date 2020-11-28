@@ -36,6 +36,7 @@ public:
 class BinarySemaphore
 {
     SemaphoreHandle_t semaphore;
+    StaticSemaphore_t staticBuffer;
 
 public:
     BinarySemaphore();
@@ -43,7 +44,7 @@ public:
     bool take(TickType_t blockTime = portMAX_DELAY);
     bool give();
     bool giveFromISR(BaseType_t *taskWoken);
-    SemaphoreHandle getRAII();
+    SemaphoreHandle getRAII(TickType_t blockTime = portMAX_DELAY);
 
 private:
     BinarySemaphore(const BinarySemaphore &) = delete;
