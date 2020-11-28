@@ -17,7 +17,7 @@ class CppField(message.Field):
             else:
                 return 'double'
         elif self.dtype == message.DataType.BYTES:
-            return 'std::array<uint8_t, %d>' % self.size
+            return 'std::array<uint8_t, %d>' % int((self.size + 7)//8)
         elif self.dtype == message.DataType.BOOL:
             return 'bool'
 
@@ -30,7 +30,7 @@ class CppField(message.Field):
             return '// ' + self.description
 
 
-def generateSystem(template_def: str, compiler_setting: dict, out_dir: str, sys_yml_file: str) -> message.System:
+def generateSystem(templs: (str, str), compiler_setting: dict, out_dir: str, sys_yml_file: str) -> message.System:
     system = message.parse_system_def(sys_yml_file, CppField)
     namespace = {
         'system': system,
@@ -38,10 +38,16 @@ def generateSystem(template_def: str, compiler_setting: dict, out_dir: str, sys_
         'arguments': [],
         'initializer': []
     }
-    template = Template(template_def, searchList=namespace,
-                        compilerSettings=compiler_setting)
+    header_templ, cpp_templ = templs
+    header = Template(header_templ, searchList=namespace,
+                      compilerSettings=compiler_setting)
+    cpp = Template(cpp_templ, searchList=namespace,
+                   compilerSettings=compiler_setting)
     with open(out_dir + '/' + system.name + '.hpp', 'w') as output:
-        output.write(str(template))
+        output.write(str(header))
+    with open(out_dir + '/' + system.name + '.cpp', 'w') as output:
+        output.write(str(cpp))
+
     return system
 
 
@@ -62,11 +68,13 @@ def main():
     }
 
     # First generate all of our system files
-    sys_template = open('scripts/templates/cpp_template_system.templ', 'r').read()
+    sys_header_template = open('scripts/templates/cpp_template_system.h', 'r').read()
+    sys_cpp_template =  open('scripts/templates/cpp_template_system.cpp', 'r').read()
+    sys_templs = (sys_header_template, sys_cpp_template)
     out_dir = sys.argv[1]
     systems = []
     for sys_def in sys.argv[2:]:
-        systems.append(generateSystem(sys_template, compiler_setting, out_dir, sys_def))
+        systems.append(generateSystem(sys_templs, compiler_setting, out_dir, sys_def))
 
     # Now generate the top level include
     top_template = open('scripts/templates/cpp_template_top.templ', 'r').read()

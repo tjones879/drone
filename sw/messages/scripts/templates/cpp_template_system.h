@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <stdint.h>
 
 namespace messages {
@@ -24,18 +25,6 @@ namespace $system.name {
 
     //#end for
 
-    auto getMessageName(uint8_t messageId) -> const char *
-    {
-        switch(messageId)
-        {
-        //#for $message in sorted($messages, key=lambda x: x.id)
-        //#set $id_var = '%s::id' % $message.name
-        case $id_var:
-            return "$system.name::$message.name";
-        //#end for
-        default:
-            return "UNKNOWN $system.name message";
-        }
-    }
+    const char * getMessageName(uint8_t messageId);
 } // end namespace $system.name
 } // end namespace messages

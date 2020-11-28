@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <stdint.h>
 
 namespace messages {
@@ -58,19 +59,6 @@ namespace GNSS {
     };
 
 
-    auto getMessageName(uint8_t messageId) -> const char *
-    {
-        switch(messageId)
-        {
-        case FixData::id:
-            return "GNSS::FixData";
-        case FixQuality::id:
-            return "GNSS::FixQuality";
-        case Track::id:
-            return "GNSS::Track";
-        default:
-            return "UNKNOWN GNSS message";
-        }
-    }
+    const char * getMessageName(uint8_t messageId);
 } // end namespace GNSS
 } // end namespace messages

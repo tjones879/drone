@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <stdint.h>
 
 namespace messages {
@@ -94,25 +95,6 @@ namespace IMU {
     };
 
 
-    auto getMessageName(uint8_t messageId) -> const char *
-    {
-        switch(messageId)
-        {
-        case GyroSample::id:
-            return "IMU::GyroSample";
-        case AccelSample::id:
-            return "IMU::AccelSample";
-        case MagSample::id:
-            return "IMU::MagSample";
-        case GyroConfig::id:
-            return "IMU::GyroConfig";
-        case AccelConfig::id:
-            return "IMU::AccelConfig";
-        case MagConfig::id:
-            return "IMU::MagConfig";
-        default:
-            return "UNKNOWN IMU message";
-        }
-    }
+    const char * getMessageName(uint8_t messageId);
 } // end namespace IMU
 } // end namespace messages
