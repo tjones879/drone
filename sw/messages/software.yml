@@ -1,0 +1,7 @@
+system_name: SOFTWARE
+id: 3
+messages:
+  DebugLog:
+    fields:
+      text:
+        type: bytes128
