@@ -1,21 +1,31 @@
 #include "logger.hpp"
-#include "mpu6050.hpp"
 #include "uart.hpp"
 #include "spi.hpp"
 #include "lsm9ds1.hpp"
 #include "gpio.hpp"
-#include <FreeRTOS/FreeRTOS.h>
+#include "messages.hpp"
+
 #include <libopencm3/cm3/cortex.h>
 #include <libopencm3/stm32/f1/memorymap.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/rcc.h>
+#include <libopencm3/stm32/usart.h>
+#include <libopencm3/stm32/dma.h>
+
+#include <FreeRTOS/FreeRTOS.h>
+#include <FreeRTOS/message_buffer.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <algorithm>
 
 #define configASSERT ( x )     if( ( x ) == 0 ) { taskDISABLE_INTERRUPTS(); for( ;; ); }
+#define GPS_MESSAGE_BUFFER_SIZE_BYTES 128
 
 volatile int received = 0;
+static uint8_t gpsMessageBuff[GPS_MESSAGE_BUFFER_SIZE_BYTES];
+StaticMessageBuffer_t gpsStaticBuffer;
+MessageBufferHandle_t gpsMessageBuffer;
 
 extern "C"
 {
@@ -46,15 +56,39 @@ void toggle_led()
 
 void LedFlashTask(void *parameters)
 {
-    Logger::get().INFO("Hello World\n");
     portTickType lastWakeTime;
     const portTickType frequency = 1000;
     lastWakeTime = xTaskGetTickCount();
     for (;;)
     {
-        Logger::get().INFO("Hello World\n");
         toggle_led();
         vTaskDelayUntil(&lastWakeTime, frequency);
+    }
+}
+
+void TelemetryTask(void *parameters)
+{
+    //UartDev uart1(0, USART1_DR, dma::DMA(dma::Device(DMA1), dma::Channel(DMA_CHANNEL5),
+    //                          dma::Priority::HIGH));
+    uint8_t rxGpsBuff[16];
+    for (;;)
+    {
+        size_t receiveSize = xMessageBufferReceive(gpsMessageBuffer,
+                                                   (void *)rxGpsBuff,
+                                                   sizeof(rxGpsBuff),
+                                                   0);
+        if (receiveSize)
+        {
+
+        }
+    }
+}
+
+void GNSSTask(void *parameters)
+{
+    for (;;)
+    {
+
     }
 }
 
@@ -66,18 +100,32 @@ extern "C" void vApplicationStackOverflowHook(TaskHandle_t task, char *taskName)
     }
 }
 
+extern "C" void vApplicationGetIdleTaskMemory(StaticTask_t **idleTaskTCBBuffer,
+                                              StackType_t **idleTaskStackBuffer,
+                                              uint32_t *idleTaskStackSize)
+{
+    static StaticTask_t idleTaskTCB;
+    static StackType_t idleTaskStack[configMINIMAL_STACK_SIZE];
+    *idleTaskTCBBuffer = &idleTaskTCB;
+    *idleTaskStackBuffer = idleTaskStack;
+    *idleTaskStackSize = configMINIMAL_STACK_SIZE;
+}
+
 int main()
 {
     platform_setup();
     Logger::get().INFO("Hello World\n");
+    gpsMessageBuffer = xMessageBufferCreateStatic(sizeof(gpsMessageBuff), gpsMessageBuff, &gpsStaticBuffer);
+
+
     xTaskCreate(LedFlashTask, "LED", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+    xTaskCreate(TelemetryTask, "Telemetry", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
     vTaskStartScheduler();
 
     while (true)
     {}
 
     /*
-    UartDev uart1(0);
     SPIBus spi(spi::Device::DEV2, spi::Rate::DIV_16, spi::Polarity::IDLE_HI,
                spi::Phase::A, spi::FrameSize::SHORT, spi::BitOrder::MSB);
     GpioPin accel_cs(GPIOB, GPIO12, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL);

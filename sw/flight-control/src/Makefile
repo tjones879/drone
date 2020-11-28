@@ -3,7 +3,7 @@ BUILD_DIR = bin
 
 SHARED_DIR = ../inc ../messages
 CPPFILES = main.cpp logger.cpp
-CFILES = port.c queue.c tasks.c heap_1.c list.c
+CFILES = port.c queue.c tasks.c heap_1.c list.c stream_buffer.c
 CFLAGS += -g3 -gdwarf-4
 CXXFLAGS += -g3 -gdwarf-4
 
