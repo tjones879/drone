@@ -3,6 +3,7 @@
 #include <utility>
 #include <stdint.h>
 #include <stddef.h>
+#include <limits>
 
 template <typename T>
 class StrongType
@@ -44,7 +45,7 @@ struct PeripheralRegister
 
     RegisterSize get_bits()
     {
-        return dev.read(reg);
+        return static_cast<RegisterSize>(dev.read(reg) & std::numeric_limits<RegisterSize>::max());
     }
 
     Peripheral &dev;
