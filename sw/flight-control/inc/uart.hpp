@@ -9,42 +9,41 @@
 
 extern volatile int received;
 
+enum class UartMode : std::uint32_t
+{
+    TX = USART_MODE_TX,
+    RX = USART_MODE_RX,
+    TX_RX = USART_MODE_TX_RX,
+};
+
 class UartDev
 {
 public:
 
-    UartDev(uint32_t device)
-        : dev(device), dataReg(USART1_DR),
-          dma_handle(dma::DMA(dma::Device(DMA1), dma::Channel(DMA_CHANNEL5),
-                              dma::Priority::HIGH))
+    UartDev(uint32_t device, const uint32_t data_reg, UartMode mode, dma::DMA &&dma_struct)
+        : dev(device), dataReg(data_reg), dma_handle(std::move(dma_struct))
     {
-        rcc_periph_clock_enable(RCC_GPIOA);
-        rcc_periph_clock_enable(RCC_USART1);
-        rcc_periph_clock_enable(RCC_AFIO);
-        rcc_periph_clock_enable(RCC_DMA1);
 
-        gpio_set_mode(GPIOB,
-                      GPIO_MODE_INPUT,
-                      GPIO_CNF_INPUT_FLOAT,
-                      GPIO_USART1_RX);
+        usart_set_baudrate(device, 115200);
+        usart_set_databits(device, 8);
+        usart_set_stopbits(device, USART_STOPBITS_1);
+        usart_set_parity(device, USART_PARITY_NONE);
+        usart_set_flow_control(device, USART_FLOWCONTROL_NONE);
+        usart_set_mode(device, static_cast<uint32_t>(mode));
 
-        usart_set_baudrate(USART1, 9600);
-        usart_set_databits(USART1, 8);
-        usart_set_stopbits(USART1, USART_STOPBITS_1);
-        usart_set_parity(USART1, USART_PARITY_NONE);
-        usart_set_flow_control(USART1, USART_FLOWCONTROL_NONE);
-        usart_set_mode(USART1, USART_MODE_RX);
-
-        usart_enable(USART1);
-
-        nvic_set_priority(NVIC_DMA1_CHANNEL5_IRQ, 0);
-        nvic_enable_irq(NVIC_DMA1_CHANNEL5_IRQ);
+        usart_enable(device);
     }
 
     UartDev(const UartDev &) = delete;
     UartDev &operator=(const UartDev &) = delete;
     UartDev(UartDev &&) = delete;
     UartDev &operator=(UartDev &&) = delete;
+
+    void write_data_block(uint8_t *data, uint32_t data_len)
+    {
+        for (auto i = 0; i < data_len; i++)
+            usart_send_blocking(USART1, data[i]);
+    }
 
     uint8_t read_data_block()
     {
@@ -57,18 +56,33 @@ public:
         nvic_set_priority(NVIC_DMA1_CHANNEL5_IRQ, 0);
         nvic_enable_irq(NVIC_DMA1_CHANNEL5_IRQ);
 
-        dma_handle.setPeripheralAddress(dma::Address((uint32_t)&USART1_DR),
+        dma_handle.setPeripheralAddress(dma::Address((uint32_t)&dataReg),
                                         dma::PeripheralSize::BYTE,
                                         false);
         dma_handle.setMemoryAddress(dma::Address((uint32_t)this->fifo),
                                     dma::MemorySize::BYTE,
                                     true);
-        dma_set_read_from_peripheral(DMA1, DMA_CHANNEL5);
+        dma_handle.setRxMode(true);
 
         dma_handle.enableInterrupt(dma::Interrupt::TRANSFER_COMPLETE);
         dma_handle.enableChannel(dma::DataLength(size), true);
 
-        usart_enable_rx_dma(USART1);
+        usart_enable_rx_dma(dev);
+    }
+
+    void enable_circ_dma_tx(uint8_t *buffer, uint16_t full_buff_len)
+    {
+        dma_handle.enableChannel(dma::DataLength(full_buff_len), true);
+        //dma_handle.enableIrq();
+        dma_handle.setPeripheralAddress(dma::Address((uint32_t)&dataReg),
+                                        dma::PeripheralSize::BYTE,
+                                        false);
+        dma_handle.setMemoryAddress(dma::Address((uint32_t)buffer),
+                                    dma::MemorySize::BYTE,
+                                    true);
+        dma_handle.setRxMode(false);
+        dma_handle.enableInterrupt(dma::Interrupt::TRANSFER_COMPLETE);
+        usart_enable_tx_dma(dev);
     }
 
     void logDMAConfig()
