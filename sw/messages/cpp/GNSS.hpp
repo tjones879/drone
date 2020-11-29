@@ -8,14 +8,19 @@ namespace GNSS {
     const uint8_t system_id = 2;
 
     class FixData {
+    public:
+        static const uint8_t id = 1;
+        typedef std::array<uint8_t, 16> SerialArray;
+
         FixData (int32_t _latitude, int32_t _longitude, uint32_t _time, uint16_t _altitude)
         : latitude(_latitude),
           longitude(_longitude),
           time(_time),
           altitude(_altitude)
         {}
-    public:
-        static const uint8_t id = 1;
+
+        SerialArray serialize();
+
         // 
         int32_t latitude;
         // 
@@ -27,14 +32,19 @@ namespace GNSS {
     };
 
     class FixQuality {
+    public:
+        static const uint8_t id = 2;
+        typedef std::array<uint8_t, 9> SerialArray;
+
         FixQuality (uint16_t _pdop, uint16_t _hdop, uint16_t _vdop, bool _fixed)
         : pdop(_pdop),
           hdop(_hdop),
           vdop(_vdop),
           fixed(_fixed)
         {}
-    public:
-        static const uint8_t id = 2;
+
+        SerialArray serialize();
+
         // Position dilution of precision
         uint16_t pdop;
         // Horizontal dilution of precision
@@ -46,12 +56,17 @@ namespace GNSS {
     };
 
     class Track {
+    public:
+        static const uint8_t id = 3;
+        typedef std::array<uint8_t, 6> SerialArray;
+
         Track (uint16_t _speed, int16_t _true_course)
         : speed(_speed),
           true_course(_true_course)
         {}
-    public:
-        static const uint8_t id = 3;
+
+        SerialArray serialize();
+
         // 
         uint16_t speed;
         // 
