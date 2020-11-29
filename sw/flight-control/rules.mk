@@ -124,12 +124,12 @@ endif
 $(BUILD_DIR)/%.o: %.c
 	@printf "  CC\t$<\n"
 	@mkdir -p $(dir $@)
-	$(Q)$(CC) $(TGT_CFLAGS) $(CFLAGS) $(TGT_CPPFLAGS) $(CPPFLAGS) -o $@ -c $<
+	$(Q)$(CC) $(TGT_CFLAGS) $(CFLAGS) $(TGT_CPPFLAGS) $(USER_DEFINES) -o $@ -c $<
 
 $(BUILD_DIR)/%.o: %.cpp
 	@printf "  CXX\t$<\n"
 	@mkdir -p $(dir $@)
-	$(Q)$(CC) $(TGT_CXXFLAGS) $(CXXFLAGS) $(TGT_CPPFLAGS) $(CPPFLAGS) -o $@ -c $<
+	$(Q)$(CC) $(TGT_CXXFLAGS) $(CXXFLAGS) $(TGT_CPPFLAGS) $(CPPFLAGS) $(USER_DEFINES) -o $@ -c $<
 
 $(PROJECT).elf: $(OBJS) $(LDSCRIPT) $(LIBDEPS)
 	@printf "  LD\t$@\n"
