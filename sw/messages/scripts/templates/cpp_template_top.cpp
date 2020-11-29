@@ -1,12 +1,7 @@
-#pragma once
-
-//#for $system in $systems
-//#set $header = '%s.hpp' % system.name
-#include "$header"
-//#end for
+#include "messages.hpp"
 
 namespace messages {
-    auto getMessageName(uint8_t systemId, uint8_t messageId) -> const char *
+    const char *getMessageName(uint8_t systemId, uint8_t messageId)
     {
         switch(systemId)
         {

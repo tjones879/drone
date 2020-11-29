@@ -51,14 +51,19 @@ def generateSystem(templs: (str, str), compiler_setting: dict, out_dir: str, sys
     return system
 
 
-def generateTopInclude(template_def: str, compiler_setting: dict, out_dir: str, systems: [message.System]):
+def generateTopInclude(templs: (str, str), compiler_setting: dict, out_dir: str, systems: [message.System]):
     namespace = {
         'systems': systems
     }
-    template = Template(template_def, searchList=namespace,
-                        compilerSettings=compiler_setting)
+    header_templ, cpp_templ = templs
+    header = Template(header_templ, searchList=namespace,
+                      compilerSettings=compiler_setting)
     with open(out_dir + '/messages.hpp', 'w') as output:
-        output.write(str(template))
+        output.write(str(header))
+    cpp = Template(cpp_templ, searchList=namespace,
+                   compilerSettings=compiler_setting)
+    with open(out_dir + '/messages.cpp', 'w') as output:
+        output.write(str(cpp))
 
 
 def main():
@@ -77,8 +82,10 @@ def main():
         systems.append(generateSystem(sys_templs, compiler_setting, out_dir, sys_def))
 
     # Now generate the top level include
-    top_template = open('scripts/templates/cpp_template_top.templ', 'r').read()
-    generateTopInclude(top_template, compiler_setting, out_dir, systems)
+    top_header_template = open('scripts/templates/cpp_template_top.h', 'r').read()
+    top_cpp_template = open('scripts/templates/cpp_template_top.cpp', 'r').read()
+    top_templs = (top_header_template, top_cpp_template)
+    generateTopInclude(top_templs, compiler_setting, out_dir, systems)
 
 
 if __name__ == '__main__':
