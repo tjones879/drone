@@ -1,6 +1,15 @@
 system_name: SOFTWARE
 id: 3
 messages:
+  MissedDeadline:
+    fields:
+      task_name:
+        type: bytes128
+        description: The taskname that missed a deadline
+      ticks_lates:
+        type: uint32
+        description: The difference betweent the expected wait time and actual wait time.
+
   DebugLog:
     fields:
       text:
