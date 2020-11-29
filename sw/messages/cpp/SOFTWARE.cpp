@@ -9,6 +9,8 @@ namespace SOFTWARE {
     {
         switch(messageId)
         {
+        case MissedDeadline::id:
+            return "SOFTWARE::MissedDeadline";
         case DebugLog::id:
             return "SOFTWARE::DebugLog";
         default:
@@ -16,6 +18,17 @@ namespace SOFTWARE {
         }
     }
 
+    MissedDeadline::SerialArray MissedDeadline::serialize()
+    {
+        MissedDeadline::SerialArray output;
+        output[0] = system_id;
+        output[1] = id;
+
+        std::memcpy(&output[2], &task_name, sizeof(std::array<uint8_t, 16>));
+        std::memcpy(&output[18], &ticks_lates, sizeof(uint32_t));
+
+        return output;
+    }
     DebugLog::SerialArray DebugLog::serialize()
     {
         DebugLog::SerialArray output;
