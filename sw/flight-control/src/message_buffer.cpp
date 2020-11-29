@@ -1,6 +1,4 @@
 #include "message_buffer.hpp"
-#include <cassert>
-#include "logger.hpp"
 
 
 StaticMessageBuffer::StaticMessageBuffer()
@@ -17,12 +15,18 @@ StaticMessageBuffer::StaticMessageBuffer(uint8_t *buff, size_t buffSize)
 size_t StaticMessageBuffer::pull(uint8_t *dstBuffer, size_t maxBufferSize)
 {
     assert(buff_ptr != NULL && buff_size != 0 && message_buffer != NULL);
-    return xMessageBufferReceive(message_buffer, (void *)dstBuffer,
+    mutex.take();
+    auto size = xMessageBufferReceive(message_buffer, (void *)dstBuffer,
                                  maxBufferSize, 0);
+    mutex.give();
+    return size;
 }
 
 size_t StaticMessageBuffer::push(uint8_t *srcBuffer, size_t len)
 {
     assert(buff_ptr != NULL && buff_size != 0 && message_buffer != NULL);
-    return xMessageBufferSend(message_buffer, (void *)srcBuffer, len, 0);
+    mutex.take();
+    auto size = xMessageBufferSend(message_buffer, (void *)srcBuffer, len, 0);
+    mutex.give();
+    return size;
 }
