@@ -17,6 +17,7 @@ SemaphoreHandle &SemaphoreHandle::operator=(SemaphoreHandle &&other)
 {
     semaphore = other.semaphore;
     other.semaphore = nullptr;
+    return *this;
 }
 
 SemaphoreHandle::~SemaphoreHandle()
