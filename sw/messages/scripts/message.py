@@ -54,6 +54,12 @@ class Message:
     def __str__(self) -> str:
         return self.name
 
+    def size(self) -> int:
+        accum = 2 # SYS_ID + MSG_ID
+        for field in self.fields:
+            accum += int((field.size + 7) / 8)
+        return accum
+
 
 class System:
     def __init__(self, name: str, id: int):
