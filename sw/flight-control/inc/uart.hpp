@@ -1,4 +1,7 @@
 #pragma once
+
+#include <array>
+
 #include "logger.hpp"
 #include <libopencm3/stm32/flash.h>
 #include <libopencm3/stm32/gpio.h>
@@ -42,13 +45,16 @@ public:
     void write_data_block(uint8_t *data, uint32_t data_len)
     {
         for (auto i = 0; i < data_len; i++)
-            usart_send_blocking(USART1, data[i]);
+            usart_send_blocking(dev, data[i]);
     }
+
+    template <size_t buffLen>
+    void write_data_block(std::array<uint8_t, buffLen> data);
 
     uint8_t read_data_block()
     {
         // Logger::get().DEBUG("READING");
-        return usart_recv_blocking(USART1);
+        return usart_recv_blocking(dev);
     }
 
     void enable_circ_dma_rx()
@@ -127,3 +133,9 @@ private:
     dma::DMA dma_handle;
 };
 
+template <size_t buffLen>
+void UartDev::write_data_block(std::array<uint8_t, buffLen> data)
+{
+    for (auto byte : data)
+        usart_send_blocking(dev, byte);
+}
