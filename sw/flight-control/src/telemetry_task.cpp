@@ -7,7 +7,7 @@
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/stm32/dma.h>
 
-uint8_t telemBufferSpace[GPS_MESSAGE_BUFFER_SIZE_BYTES];
+uint8_t telemBufferSpace[TELEM_BUFFER_SIZE];
 StaticMessageBuffer telemetryDownlinkBuffer(telemBufferSpace, sizeof(telemBufferSpace));
 TaskHandle_t dma1_channel4_task = NULL;
 
