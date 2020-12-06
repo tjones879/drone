@@ -1,6 +1,11 @@
 #pragma once
 
 #include <cstdint>
+#include <libopencm3/cm3/cortex.h>
+#include <libopencm3/cm3/nvic.h>
+#include <libopencm3/stm32/f1/memorymap.h>
+#include <libopencm3/stm32/gpio.h>
+#include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/dma.h>
 #include "util.hpp"
 
@@ -48,6 +53,9 @@ using Channel = StrongType<uint8_t>;
 class DMA
 {
 public:
+    DMA()
+        : dev(0xFFFFFFFF), channel(0xFF), priority(0xFFFFFFFF) {}
+
     DMA(Device device, Channel chan, Priority prio)
         : dev(static_cast<uint32_t>(device)), channel(chan.get()),
           priority(static_cast<uint32_t>(prio))
@@ -57,8 +65,16 @@ public:
         dma_set_priority(dev, channel, priority);
     }
 
+    void enableIrq(uint8_t irq, uint8_t priority)
+    {
+        assert(dev != 0xFFFFFFFF && channel != 0xFF && priority != 0xFFFFFFFF);
+        nvic_set_priority(irq, priority);
+        nvic_enable_irq(irq);
+    }
+
     void enableChannel(DataLength num_data, bool circular)
     {
+        assert(dev != 0xFFFFFFFF && channel != 0xFF && priority != 0xFFFFFFFF);
         dma_set_number_of_data(dev, channel, num_data.get());
         if (circular)
             dma_enable_circular_mode(dev, channel);
@@ -68,11 +84,13 @@ public:
 
     void disable()
     {
+        assert(dev != 0xFFFFFFFF && channel != 0xFF && priority != 0xFFFFFFFF);
         dma_disable_channel(dev, channel);
     }
 
     void enableInterrupt(Interrupt interrupt)
     {
+        assert(dev != 0xFFFFFFFF && channel != 0xFF && priority != 0xFFFFFFFF);
         switch (interrupt)
         {
         case Interrupt::TRANSFER_COMPLETE:
@@ -94,6 +112,7 @@ public:
 
     void disableInterrupt(Interrupt interrupt)
     {
+        assert(dev != 0xFFFFFFFF && channel != 0xFF && priority != 0xFFFFFFFF);
         switch (interrupt)
         {
         case Interrupt::TRANSFER_COMPLETE:
@@ -115,11 +134,13 @@ public:
 
     void clearInterrupt(Interrupt interrupt)
     {
+        assert(dev != 0xFFFFFFFF && channel != 0xFF && priority != 0xFFFFFFFF);
         dma_clear_interrupt_flags(dev, channel, static_cast<uint32_t>(interrupt));
     }
 
     void setPeripheralAddress(Address addr, PeripheralSize size, bool increment)
     {
+        assert(dev != 0xFFFFFFFF && channel != 0xFF && priority != 0xFFFFFFFF);
         dma_set_peripheral_address(dev, channel, addr.get());
         dma_set_peripheral_size(dev, channel, static_cast<std::uint32_t>(size));
         if (increment)
@@ -130,12 +151,22 @@ public:
 
     void setMemoryAddress(Address addr, MemorySize size, bool increment)
     {
+        assert(dev != 0xFFFFFFFF && channel != 0xFF && priority != 0xFFFFFFFF);
         dma_set_memory_address(dev, channel, addr.get());
         dma_set_memory_size(dev, channel, static_cast<std::uint32_t>(size));
         if (increment)
             dma_enable_memory_increment_mode(dev, channel);
         else
             dma_disable_memory_increment_mode(dev, channel);
+    }
+
+    void setRxMode(bool rx_mode)
+    {
+        assert(dev != 0xFFFFFFFF && channel != 0xFF && priority != 0xFFFFFFFF);
+        if (rx_mode)
+            dma_set_read_from_peripheral(dev, channel);
+        else
+            dma_set_read_from_memory(dev, channel);
     }
 
 private:
