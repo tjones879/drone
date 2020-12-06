@@ -11,5 +11,7 @@
 
 extern uint8_t telemBufferSpace[GPS_MESSAGE_BUFFER_SIZE_BYTES];
 extern StaticMessageBuffer telemetryDownlinkBuffer;
+extern TaskHandle_t dma1_channel4_task;
 
 void TelemetryDownlinkTask(void *parameters);
+extern "C" void dma1_channel4_isr(void);
