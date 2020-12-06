@@ -1,5 +1,5 @@
 #pragma once
-#include "sempahore.hpp"
+#include "semaphore.hpp"
 
 class Logger
 {
