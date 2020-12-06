@@ -120,8 +120,32 @@ public:
         return data;
     }
 
-    void read_data_blocks(uint8_t *buff, size_t buff_len)
+    void burst_read(uint8_t addr, uint8_t *buff, size_t buff_len)
     {
+        i2c_send_start(dev);
+        i2c_enable_ack(dev);
+
+         /* Wait for master mode selected */
+        while (!((I2C_SR1(dev) & I2C_SR1_SB)
+                & (I2C_SR2(dev) & (I2C_SR2_MSL | I2C_SR2_BUSY))));
+
+        i2c_send_7bit_address(dev, addr, I2C_READ);
+
+         /* Waiting for address is transferred. */
+        while (!(I2C_SR1(dev) & I2C_SR1_ADDR));
+        /* Clearing ADDR condition sequence. */
+        (void)I2C_SR2(dev);
+
+        for (size_t i = 0; i < buff_len; ++i) {
+            if (i == buff_len - 1) {
+                i2c_disable_ack(dev);
+                i2c_nack_current(dev);
+            }
+            while (!(I2C_SR1(dev) & I2C_SR1_RxNE));
+            buff[i] = i2c_get_data(dev);
+        }
+        i2c_send_stop(dev);
+        /*
         uint32_t reg32 __attribute((unused));
         i2c_disable_ack(dev);
 
@@ -132,6 +156,7 @@ public:
         {
             buff[i] = i2c_get_data(dev);
         }
+        */
     }
 
     void resetI2CBug()
