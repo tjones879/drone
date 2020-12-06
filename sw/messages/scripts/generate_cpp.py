@@ -23,9 +23,12 @@ class CppField(message.Field):
 
     def format_desc(self) -> str:
         if len(self.description) > 80:
-            return textwrap.fill(self.description, width=75,
-                                initial_indent='/** ',
-                                subsequent_indent='    * ') + '\n    */'
+            prefix = '/**\n'
+            comment = textwrap.fill(self.description, width=75,
+                                    initial_indent='         * ',
+                                    subsequent_indent='         * ')
+            suffix = '\n         */'
+            return prefix + comment + suffix
         else:
             return '// ' + self.description
 
