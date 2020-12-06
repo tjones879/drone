@@ -86,19 +86,23 @@ namespace GNSS {
 
         SerialArray serialize();
 
-        /** Indicate whether there is a framing error present in the NMEA sentence.
-    * If the value of this flag is true, then the calculated and reported
-    * checksums should be ignored.
-    */
+        /**
+         * Indicate whether there is a framing error present in the NMEA
+         * sentence. If the value of this flag is true, then the calculated
+         * and reported checksums should be ignored.
+         */
         bool framing_error;
-        /** The calculated checksum from the input NMEA sentence. The value of the
-    * calculated checksum is only valid when the framing error flag is
-    * false.
-    */
+        /**
+         * The calculated checksum from the input NMEA sentence. The value
+         * of the calculated checksum is only valid when the framing error
+         * flag is false.
+         */
         uint8_t calculated_checksum;
-        /** The checksum provided by the GPS receiver. The value of the reported
-    * checksum is only valid when the framing error flag is false.
-    */
+        /**
+         * The checksum provided by the GPS receiver. The value of the
+         * reported checksum is only valid when the framing error flag is
+         * false.
+         */
         uint8_t reported_checksum;
     };
 
