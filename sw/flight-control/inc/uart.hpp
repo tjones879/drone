@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <cassert>
 
 #include "logger.hpp"
 #include <libopencm3/stm32/flash.h>
@@ -23,16 +24,35 @@ class UartDev
 {
 public:
 
-    UartDev(uint32_t device, const uint32_t data_reg, UartMode mode, dma::DMA &&dma_struct)
-        : dev(device), dataReg(data_reg), dma_handle(std::move(dma_struct))
+    UartDev(uint32_t device, UartMode mode, dma::DMA &&dma_struct, uint32_t baudrate)
+        : dev(device), dataRegAddr(dma::Address(0)), dma_handle(std::move(dma_struct))
     {
+        if (device == USART1)
+        {
+            dataReg = USART1_DR;
+            dataRegAddr = dma::Address((uint32_t)&USART1_DR);
+        }
+        else if (device == USART2)
+        {
+            dataReg = USART2_DR;
+            dataRegAddr = dma::Address((uint32_t)&USART2_DR);
+        }
 
-        usart_set_baudrate(device, 115200);
+        assert(dataRegAddr != dma::Address(0));
+
+        usart_set_baudrate(device, baudrate);
         usart_set_databits(device, 8);
         usart_set_stopbits(device, USART_STOPBITS_1);
         usart_set_parity(device, USART_PARITY_NONE);
         usart_set_flow_control(device, USART_FLOWCONTROL_NONE);
         usart_set_mode(device, static_cast<uint32_t>(mode));
+
+        if (mode == UartMode::RX)
+        {
+            nvic_set_priority(NVIC_USART2_IRQ, 193);
+            nvic_enable_irq(NVIC_USART2_IRQ);
+            USART_CR1(dev) |= USART_CR1_RXNEIE;
+        }
 
         usart_enable(device);
     }
@@ -54,15 +74,13 @@ public:
     uint8_t read_data_block()
     {
         // Logger::get().DEBUG("READING");
-        return usart_recv_blocking(dev);
+        return usart_recv_blocking(dev) & 0xFF;
     }
 
     void enable_circ_dma_rx()
     {
-        nvic_set_priority(NVIC_DMA1_CHANNEL5_IRQ, 0);
-        nvic_enable_irq(NVIC_DMA1_CHANNEL5_IRQ);
-
-        dma_handle.setPeripheralAddress(dma::Address((uint32_t)&dataReg),
+        dma_handle.enableIrq(NVIC_DMA1_CHANNEL5_IRQ, 192);
+        dma_handle.setPeripheralAddress(dataRegAddr,
                                         dma::PeripheralSize::BYTE,
                                         false);
         dma_handle.setMemoryAddress(dma::Address((uint32_t)this->fifo),
@@ -78,9 +96,8 @@ public:
 
     void enable_circ_dma_tx(uint8_t *buffer, uint16_t full_buff_len)
     {
-        dma_handle.enableChannel(dma::DataLength(full_buff_len), true);
-        //dma_handle.enableIrq();
-        dma_handle.setPeripheralAddress(dma::Address((uint32_t)&dataReg),
+        dma_handle.enableIrq(NVIC_DMA1_CHANNEL4_IRQ, 192);
+        dma_handle.setPeripheralAddress(dataRegAddr,
                                         dma::PeripheralSize::BYTE,
                                         false);
         dma_handle.setMemoryAddress(dma::Address((uint32_t)buffer),
@@ -88,6 +105,8 @@ public:
                                     true);
         dma_handle.setRxMode(false);
         dma_handle.enableInterrupt(dma::Interrupt::TRANSFER_COMPLETE);
+        dma_handle.enableChannel(dma::DataLength(full_buff_len), false);
+
         usart_enable_tx_dma(dev);
     }
 
@@ -125,8 +144,9 @@ public:
             Logger::get().WARN("UNSERVICED GIF\n");
     }
 
-    const std::uint32_t dataReg;
-    static const int size = 512;
+    uint32_t dataReg;
+    dma::Address dataRegAddr;
+    static const int size = 16;
     char fifo[size];
 private:
     uint32_t dev;
