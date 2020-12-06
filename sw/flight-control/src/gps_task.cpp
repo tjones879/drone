@@ -2,6 +2,7 @@
 #include "telemetry_task.hpp"
 #include "messages.hpp"
 #include "uart.hpp"
+#include <optional>
 
 uint8_t gpsBufferSpace[GPS_BUFFER_SIZE];
 StaticMessageBuffer gpsBuffer(gpsBufferSpace, sizeof(gpsBufferSpace));
@@ -9,6 +10,51 @@ TaskHandle_t usart2_isr_task = NULL;
 
 std::array<uint8_t, MAX_NMEA_LENGTH> nmeaSentence;
 size_t pos = 0;
+
+uint8_t fromHex(char hex)
+{
+    if (hex >= 'A' && hex <= 'F')
+        return hex - 'A' + 10;
+    else if (hex >= 'a' && hex <= 'f')
+        return hex - 'a' + 10;
+    else
+        return hex - '0';
+}
+
+std::optional<messages::GNSS::InvalidSentence> verifyChecksum(uint8_t *buff, size_t buffLen)
+{
+    if (buffLen == 0 || !buff)
+        return messages::GNSS::InvalidSentence{true, 0, 0};
+
+    // Verify that we start with the $ delimiter
+    if (buff[0] != '$')
+        return messages::GNSS::InvalidSentence{true, 0, 0};
+
+    size_t pos = 1;
+    uint8_t calculated = 0;
+    while (pos < buffLen)
+    {
+        if (buff[pos] == '*')
+            break;
+
+        calculated ^= buff[pos];
+        pos += 1;
+    }
+
+    // We went through the entire buffer without seeing the end delimiter
+    // The GPS sentence should always terminate with |*|A|B|CR|LF
+    // and pos should be the location of *
+    if (pos > buffLen - 5)
+        return messages::GNSS::InvalidSentence{true, 0, 0};
+
+    // We have not identified any framing errors. Check against the reported sum.
+    pos += 1; // Skip over the * and the next two characters should be hex
+    uint8_t reported = fromHex(buff[pos]) * 16 + fromHex(buff[pos + 1]);
+    if (reported != calculated)
+        return messages::GNSS::InvalidSentence{false, calculated, reported};
+
+    return {};
+}
 
 void GpsTask(void *parameters)
 {
@@ -28,9 +74,13 @@ void GpsTask(void *parameters)
             buff[i] = gps_rx.read_data_block();
         */
         size_t rxSize = gpsBuffer.pull(&localNmea[0], sizeof(localNmea), portMAX_DELAY);
+        auto error = verifyChecksum(&localNmea[0], rxSize);
         
-        telemetryDownlinkBuffer.push(&localNmea[0], rxSize);
-        //Logger::get().WARN((char *)&localNmea[0]);
+        if (!error)
+            telemetryDownlinkBuffer.push(&localNmea[0], rxSize);
+        else
+            telemetryDownlinkBuffer.push(error->serialize());
+
     }
 }
 
