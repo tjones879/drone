@@ -2,7 +2,7 @@ PROJECT = flight-control
 BUILD_DIR = bin
 
 SHARED_DIR = ../inc ../messages
-CPPFILES = main.cpp logger.cpp message_buffer.cpp telemetry_task.cpp semaphore.cpp ../messages/GNSS.cpp ../messages/IMU.cpp ../messages/SOFTWARE.cpp ../messages/messages.cpp
+CPPFILES = main.cpp logger.cpp message_buffer.cpp telemetry_task.cpp gps_task.cpp semaphore.cpp ../messages/GNSS.cpp ../messages/IMU.cpp ../messages/SOFTWARE.cpp ../messages/messages.cpp
 CFILES = port.c queue.c tasks.c heap_1.c list.c stream_buffer.c
 CFLAGS += -g3 -gdwarf-4
 CXXFLAGS += -g3 -gdwarf-4
