@@ -29,6 +29,42 @@ private:
 };
 
 
+template <typename T>
+inline bool operator==(const StrongType<T>& lhs, const StrongType<T>& rhs)
+{
+    return lhs.get() == rhs.get();
+}
+
+template <typename T>
+inline bool operator!=(const StrongType<T>& lhs, const StrongType<T>& rhs)
+{
+    return !(lhs == rhs);
+}
+
+template <typename T>
+inline bool operator<(const StrongType<T>& lhs, const StrongType<T>& rhs)
+{
+    return lhs.get() < rhs.get();
+}
+
+template <typename T>
+inline bool operator>(const StrongType<T>& lhs, const StrongType<T>& rhs)
+{
+    return lhs.get() > rhs.get();
+}
+
+template <typename T>
+inline bool operator<=(const StrongType<T>& lhs, const StrongType<T>& rhs)
+{
+    return lhs.get() <= rhs.get();
+}
+
+template <typename T>
+inline bool operator>=(const StrongType<T>& lhs, const StrongType<T>& rhs)
+{
+    return lhs.get() >= rhs.get();
+}
+
 template<typename Peripheral, typename RegisterType, RegisterType reg,
          typename RegisterSize, typename valueType, bool readWrite>
 struct PeripheralRegister
