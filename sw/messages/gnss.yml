@@ -34,3 +34,22 @@ messages:
         type: uint16
       true_course:
         type: int16
+
+  InvalidSentence:
+    fields:
+      framing_error:
+        type: bool
+        description:
+          Indicate whether there is a framing error present in the NMEA sentence.
+          If the value of this flag is true, then the calculated and reported
+          checksums should be ignored.
+      calculated_checksum:
+        type: uint8
+        description:
+          The calculated checksum from the input NMEA sentence. The value of the
+          calculated checksum is only valid when the framing error flag is false.
+      reported_checksum:
+        type: uint8
+        description:
+          The checksum provided by the GPS receiver. The value of the
+          reported checksum is only valid when the framing error flag is false.

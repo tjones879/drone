@@ -15,6 +15,8 @@ namespace GNSS {
             return "GNSS::FixQuality";
         case Track::id:
             return "GNSS::Track";
+        case InvalidSentence::id:
+            return "GNSS::InvalidSentence";
         default:
             return "UNKNOWN GNSS message";
         }
@@ -54,6 +56,18 @@ namespace GNSS {
 
         std::memcpy(&output[2], &speed, sizeof(uint16_t));
         std::memcpy(&output[4], &true_course, sizeof(int16_t));
+
+        return output;
+    }
+    InvalidSentence::SerialArray InvalidSentence::serialize()
+    {
+        InvalidSentence::SerialArray output;
+        output[0] = system_id;
+        output[1] = id;
+
+        std::memcpy(&output[2], &framing_error, sizeof(bool));
+        std::memcpy(&output[3], &calculated_checksum, sizeof(uint8_t));
+        std::memcpy(&output[4], &reported_checksum, sizeof(uint8_t));
 
         return output;
     }
