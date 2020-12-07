@@ -41,10 +41,10 @@ namespace GNSS {
         output[0] = system_id;
         output[1] = id;
 
-        std::memcpy(&output[2], &pdop, sizeof(uint16_t));
-        std::memcpy(&output[4], &hdop, sizeof(uint16_t));
-        std::memcpy(&output[6], &vdop, sizeof(uint16_t));
-        std::memcpy(&output[8], &fixed, sizeof(bool));
+        std::memcpy(&output[2], &pdop, sizeof(float));
+        std::memcpy(&output[6], &hdop, sizeof(float));
+        std::memcpy(&output[10], &vdop, sizeof(float));
+        std::memcpy(&output[14], &fixed, sizeof(bool));
 
         return output;
     }

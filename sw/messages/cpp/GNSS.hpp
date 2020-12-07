@@ -34,9 +34,9 @@ namespace GNSS {
     class FixQuality {
     public:
         static const uint8_t id = 2;
-        typedef std::array<uint8_t, 9> SerialArray;
+        typedef std::array<uint8_t, 15> SerialArray;
 
-        FixQuality (uint16_t _pdop, uint16_t _hdop, uint16_t _vdop, bool _fixed)
+        FixQuality (float _pdop, float _hdop, float _vdop, bool _fixed)
         : pdop(_pdop),
           hdop(_hdop),
           vdop(_vdop),
@@ -46,11 +46,11 @@ namespace GNSS {
         SerialArray serialize();
 
         // Position dilution of precision
-        uint16_t pdop;
+        float pdop;
         // Horizontal dilution of precision
-        uint16_t hdop;
+        float hdop;
         // Vertical dilution of precision
-        uint16_t vdop;
+        float vdop;
         // Flag to indicate if a valid satellite lock has been acquired.
         bool fixed;
     };

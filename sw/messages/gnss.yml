@@ -15,13 +15,13 @@ messages:
   FixQuality:
     fields:
       pdop:
-        type: uint16
+        type: float32
         description: Position dilution of precision
       hdop:
-        type: uint16
+        type: float32
         description: Horizontal dilution of precision
       vdop:
-        type: uint16
+        type: float32
         description: Vertical dilution of precision
       fixed:
         type: bool
